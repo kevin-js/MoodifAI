@@ -1,0 +1,34 @@
+.my-navbar {
+	border-radius: 0;
+	margin-bottom: 0;
+}
+
+.splash-screen {
+	/*color: #ffffff;*/
+/*	background-image: url('../img/visualizer-background.jpg');
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-size: cover;
+*/
+}
+
+.main-content {
+	margin-top: 20vh;
+	background-color: (255, 255, 255, 0.5);
+}
+
+.splash-screen-video {
+	position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#signup-button {
+	color: #000000;
+}
+
+#signup-form {
+	color: #000000;
+}
