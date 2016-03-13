@@ -10,7 +10,7 @@ import json
 import urlparse
 import oauth2
 import pandas
-import enchant
+#import enchant
 from math import sqrt
 from flask import Flask, render_template, g, session, redirect, request, url_for
 from moodifai import config_data
@@ -139,6 +139,8 @@ def sentiment_analysis(tweet_list):
 			avg_dominance_score += scores[2]
 			n += 1
 		except:
+			pass
+			"""
 			possible_matches = app.spellchecker.suggest(keyword)
 			for match in possible_matches:
 				try:
@@ -150,7 +152,7 @@ def sentiment_analysis(tweet_list):
 					break
 				except:
 					pass
-
+			"""
 	avg_valence_score /= n
 	avg_arousal_score /= n
 	avg_dominance_score /= n
@@ -192,7 +194,7 @@ def configure_app():
 		app.padWordValues[word] = (valence_score, arousal_score, dominance_score)
 
 	# set up spellchecker dictionary
-	app.spellchecker = enchant.Dict('en_US')
+	#app.spellchecker = enchant.Dict('en_US')
 
 if __name__ == "__main__":
 	configure_app()
