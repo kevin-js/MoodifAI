@@ -51,14 +51,17 @@ def sounds():
 	global request_token
 	token = oauth2.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
 	del request_token
+	
 	token.set_verifier(oauth_verifier)
 	client = oauth2.Client(consumer, token)
 	resp, content = client.request(ACCESS_TOKEN_URL, "POST")
+	
 	access_token = dict(urlparse.parse_qsl(content))	
 	auth = tweepy.OAuthHandler(config_data.twitter_consumer_key, config_data.twitter_consumer_secret)
 	auth.set_access_token(access_token['oauth_token'], access_token['oauth_token_secret'])
 	api = tweepy.API(auth)
 	tweet_list = api.home_timeline()
+
 	dominant_moods = sentiment_analysis(tweet_list)
 	track_list = get_artists_by_mood(dominant_moods)
 	track_spotify_id = get_spotify_track_list(track_list)
@@ -111,13 +114,20 @@ def clean_text(input_string):
 	input_string = re.sub(r'#([^\s]+)', r'\1', tweet)
 	input_string = re.sub('@', '', tweet)
 	input_string = input_string.strip('\'"')
+	emoji_pattern = re.compile("["
+        u"\U0001F600-\U0001F64F"  # emoticons
+        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+        u"\U0001F680-\U0001F6FF"  # transport & map symbols
+        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                           "]+", flags=re.UNICODE)
+	emoji_pattern.sub(r'emoji', input_string)	
 	return input_string
 
 # parse list of tweets into list of words
 def tokenize_tweets(tweet_list):
 	tweet_words = []
 	for tweet in tweet_list:
-		cleaned_tweet = clean_text(tweet.text)
+		cleaned_tweet = clean_text(unicode(tweet.text, "utf-8"))
 		tokenized_tweet = cleaned_tweet.split(' ')
 		for token in tokenized_tweet:
 			tweet_words.append(token)
@@ -125,12 +135,14 @@ def tokenize_tweets(tweet_list):
 
 # sentiment analysis functions
 def sentiment_analysis(tweet_list):
-	tweet_words = tokenize_tweets(tweet_list)
+	tweet_words = tokenize_tweets(tweet_list) 
 	avg_valence_score = 0
 	avg_arousal_score = 0
 	avg_dominance_score = 0
 	n = 0
+	print tweet_words
 	for keyword in tweet_words:
+		print keyword
 		try:
 			scores = app.padWordValues[keyword]
 			avg_valence_score += scores[0]
@@ -138,7 +150,7 @@ def sentiment_analysis(tweet_list):
 			avg_dominance_score += scores[2]
 			n += 1
 		except:
-			pass
+			continue
 			"""
 			possible_matches = app.spellchecker.suggest(keyword)
 			for match in possible_matches:
@@ -152,16 +164,18 @@ def sentiment_analysis(tweet_list):
 				except:
 					pass
 			"""
-	avg_valence_score /= n
-	avg_arousal_score /= n
-	avg_dominance_score /= n
+	if n != 0:
+		avg_valence_score /= n
+		avg_arousal_score /= n
+		avg_dominance_score /= n
+	print "here 2"
 
 	dominant_mood = None
 	# start min distance at infinity
 	min_dist = float('inf')
 
 	for emotion in app.padEmotionValues.keys():
-
+		print emotion
 		# using Euclidean distance of observation from cluster means
 		current_emotion_score = app.padEmotionValues[emotion]
 		dist = sqrt((avg_valence_score - current_emotion_score[0])**2 + (avg_arousal_score - current_emotion_score[1])**2 + (avg_dominance_score - current_emotion_score[2]) ** 2)
