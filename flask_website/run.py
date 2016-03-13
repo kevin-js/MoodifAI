@@ -2,9 +2,8 @@
 
 import sys
 sys.path.append('../../')
-import httplib
+sys.path.append('..')
 import tweepy
-import nltk
 import re
 import requests
 import json
@@ -13,9 +12,8 @@ import oauth2
 import pandas
 import enchant
 from math import sqrt
-from requests_oauthlib import OAuth2Session
 from flask import Flask, render_template, g, session, redirect, request, url_for
-from moodify import config_data
+from moodifai import config_data
 
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
@@ -185,7 +183,7 @@ def configure_app():
 
 	# set up dictionary of words mapped to normalized PAD scores; original scores on scale of 1-9
 	app.padWordValues = {}
-	padCSV = pandas.read_csv('../valence_arousal_ratings.csv')
+	padCSV = pandas.read_csv('valence_arousal_ratings.csv')
 	for i in range(len(padCSV)):
 		valence_score = (padCSV['V.Mean.Sum'][i] - 4.5)/4.5
 		arousal_score = (padCSV['A.Mean.Sum'][i] - 4.5)/4.5
