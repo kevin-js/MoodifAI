@@ -19,6 +19,30 @@ import config_data
 
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
+def configure_app():
+	# set up dictionary of PAD scores for emotional categories
+	app.padEmotionValues = {}
+	app.padEmotionValues['happy'] = (0.5900, 0.4278, 0.4607)
+	app.padEmotionValues['trippy'] = (0.4350, 0.0813, -0.1046)
+	app.padEmotionValues['disturbing'] = (-0.2745, 0.0860, 0.0095)
+	app.padEmotionValues['angry'] = (-0.2543, 0.5081, 0.1367)
+	app.padEmotionValues['eerie'] = (-0.6080, 0.3507, -0.3720)
+	app.padEmotionValues['sad'] = (-0.4423, -0.2610, -0.2880)
+
+	# set up dictionary of words mapped to normalized PAD scores; original scores on scale of 1-9
+	app.padWordValues = {}
+	padCSV = pandas.read_csv('valence_arousal_ratings.csv')
+	for i in range(len(padCSV)):
+		valence_score = (padCSV['V.Mean.Sum'][i] - 4.5)/4.5
+		arousal_score = (padCSV['A.Mean.Sum'][i] - 4.5)/4.5
+		dominance_score = (padCSV['D.Mean.Sum'][i] - 4.5)/4.5
+		word = padCSV['Word'][i]
+		app.padWordValues[word] = (valence_score, arousal_score, dominance_score)
+
+	# set up spellchecker dictionary
+	#app.spellchecker = enchant.Dict('en_US')
+
+configure_app()
 
 # Constants
 REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
@@ -51,7 +75,6 @@ def sounds():
 	global request_token
 	token = oauth2.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
 	del request_token
-	
 	token.set_verifier(oauth_verifier)
 	client = oauth2.Client(consumer, token)
 	resp, content = client.request(ACCESS_TOKEN_URL, "POST")
@@ -61,11 +84,10 @@ def sounds():
 	auth.set_access_token(access_token['oauth_token'], access_token['oauth_token_secret'])
 	api = tweepy.API(auth)
 	tweet_list = api.home_timeline()
-
-	dominant_moods = sentiment_analysis(tweet_list)
-	track_list = get_artists_by_mood(dominant_moods)
+	dominant_mood = sentiment_analysis(tweet_list)
+	track_list = get_artists_by_mood(dominant_mood)
 	track_spotify_id = get_spotify_track_list(track_list)
-	return render_template('sounds.html', tweetlist=tweet_list, spotify_id=track_spotify_id)
+	return render_template('sounds.html', tweetlist=tweet_list, spotify_id=track_spotify_id, mood=dominant_mood)
 
 # get mood categories
 def get_moods():
@@ -108,26 +130,24 @@ def get_spotify_track_list(track_list):
 
 # clean up tweets
 def clean_text(input_string):
+	try:
+		emoji = re.compile(u'[(\U00012702-\U000127B0)(\U00010000-\U0010ffff)(\U0001F600-\U0001F64F)(\U0001F300-\U0001F5FF)(\U0001F680-\U0001F6FF)(\U0001F1E0-\U0001F1FF)+]')
+	except re.error:
+		emoji = re.compile(u'[\uD800-\uDBFF]+[\uDC00-\uDFFF]+')
+	input_string = emoji.sub('emoji', input_string)
 	input_string = input_string.lower()
 	tweet = re.sub('((www\.[^\s]+)|(https?://[^\s]+))','URL',input_string)
 	input_string = re.sub('[\s]+', ' ', tweet)
 	input_string = re.sub(r'#([^\s]+)', r'\1', tweet)
 	input_string = re.sub('@', '', tweet)
 	input_string = input_string.strip('\'"')
-	emoji_pattern = re.compile("["
-        u"\U0001F600-\U0001F64F"  # emoticons
-        u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-        u"\U0001F680-\U0001F6FF"  # transport & map symbols
-        u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                           "]+", flags=re.UNICODE)
-	emoji_pattern.sub(r'emoji', input_string)	
 	return input_string
 
 # parse list of tweets into list of words
 def tokenize_tweets(tweet_list):
 	tweet_words = []
 	for tweet in tweet_list:
-		cleaned_tweet = clean_text(unicode(tweet.text, "utf-8"))
+		cleaned_tweet = clean_text(tweet.text)
 		tokenized_tweet = cleaned_tweet.split(' ')
 		for token in tokenized_tweet:
 			tweet_words.append(token)
@@ -140,8 +160,10 @@ def sentiment_analysis(tweet_list):
 	avg_arousal_score = 0
 	avg_dominance_score = 0
 	n = 0
+	# problem: handle emoji
 	print tweet_words
 	for keyword in tweet_words:
+		keyword = unicode(keyword)
 		print keyword
 		try:
 			scores = app.padWordValues[keyword]
@@ -150,6 +172,7 @@ def sentiment_analysis(tweet_list):
 			avg_dominance_score += scores[2]
 			n += 1
 		except:
+			print sys.exc_info()
 			continue
 			"""
 			possible_matches = app.spellchecker.suggest(keyword)
@@ -168,48 +191,24 @@ def sentiment_analysis(tweet_list):
 		avg_valence_score /= n
 		avg_arousal_score /= n
 		avg_dominance_score /= n
-	print "here 2"
 
 	dominant_mood = None
 	# start min distance at infinity
 	min_dist = float('inf')
 
 	for emotion in app.padEmotionValues.keys():
-		print emotion
 		# using Euclidean distance of observation from cluster means
 		current_emotion_score = app.padEmotionValues[emotion]
 		dist = sqrt((avg_valence_score - current_emotion_score[0])**2 + (avg_arousal_score - current_emotion_score[1])**2 + (avg_dominance_score - current_emotion_score[2]) ** 2)
-		print min_dist
 		if dist < min_dist:
 			min_dist = dist
 			dominant_mood = emotion
-
 	return dominant_mood
 
-def configure_app():
-	# set up dictionary of PAD scores for emotional categories
-	app.padEmotionValues = {}
-	app.padEmotionValues['happy'] = (0.5900, 0.4278, 0.4607)
-	app.padEmotionValues['trippy'] = (0.4350, 0.0813, -0.1046)
-	app.padEmotionValues['disturbing'] = (-0.2745, 0.0860, 0.0095)
-	app.padEmotionValues['angry'] = (-0.2543, 0.5081, 0.1367)
-	app.padEmotionValues['eerie'] = (-0.6080, 0.3507, -0.3720)
-	app.padEmotionValues['sad'] = (-0.4423, -0.2610, -0.2880)
-
-	# set up dictionary of words mapped to normalized PAD scores; original scores on scale of 1-9
-	app.padWordValues = {}
-	padCSV = pandas.read_csv('valence_arousal_ratings.csv')
-	for i in range(len(padCSV)):
-		valence_score = (padCSV['V.Mean.Sum'][i] - 4.5)/4.5
-		arousal_score = (padCSV['A.Mean.Sum'][i] - 4.5)/4.5
-		dominance_score = (padCSV['D.Mean.Sum'][i] - 4.5)/4.5
-		word = padCSV['Word'][i]
-		app.padWordValues[word] = (valence_score, arousal_score, dominance_score)
-
-	# set up spellchecker dictionary
-	#app.spellchecker = enchant.Dict('en_US')
-
-if __name__ == "__main__":
+def runapp():
 	configure_app()
 	port = int(os.environ.get('PORT', 5000))
 	app.run(host='0.0.0.0', port=port)
+
+if __name__ == "__main__":
+	runapp()
