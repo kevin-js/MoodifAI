@@ -21,11 +21,11 @@ app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
 
 # Constants
-OAUTH2_TOKEN_URL = 'https://api.twitter.com/oauth2/token'
 REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
 ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
 AUTHORIZATION_BASE_URL = 'https://api.twitter.com/oauth/authorize'
-CALLBACK = 'http://localhost:5000/sounds'
+TWITTER_TIMELINE_URL = 'https://api.twitter.com/1.1/statuses/home_timeline.json'
+
 consumer = oauth2.Consumer(config_data.twitter_consumer_key, config_data.twitter_consumer_secret)
 client = oauth2.Client(consumer)
 
@@ -37,20 +37,35 @@ def index():
 # TODO: OAuth authentication for user login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-	return redirect(url_for('sounds'))
+	resp, content = client.request(REQUEST_TOKEN_URL, "GET")
+	if resp['status'] != '200':
+		return render_template('login-error.html', resp['status'])
+
+	global request_token
+	request_token = dict(urlparse.parse_qsl(content))
+	return redirect('%s?oauth_token=%s' % (AUTHORIZATION_BASE_URL, request_token['oauth_token']))
 
 @app.route('/sounds', methods=['GET', 'POST'])
 def sounds():
+	#oauth_verifier = request.args.get('oauth_verifier', '')
+	#print request.args.get('oauth_verifier')
+	oauth_verifier = request.args.get('oauth_verifier')
+	global request_token
+	token = oauth2.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
+	del request_token
+	token.set_verifier(oauth_verifier)
+	client = oauth2.Client(consumer, token)
+	resp, content = client.request(ACCESS_TOKEN_URL, "POST")
+	access_token = dict(urlparse.parse_qsl(content))
+
 	auth = tweepy.OAuthHandler(config_data.twitter_consumer_key, config_data.twitter_consumer_secret)
-	auth.set_access_token(config_data.twitter_access_key, config_data.twitter_access_secret)
+	auth.set_access_token(access_token['oauth_token'], access_token['oauth_token_secret'])
 	api = tweepy.API(auth)
 	tweet_list = api.home_timeline()
 	dominant_moods = sentiment_analysis(tweet_list)
-	print dominant_moods
 	track_list = get_artists_by_mood(dominant_moods)
 	track_spotify_id = get_spotify_track_list(track_list)
 	return render_template('sounds.html', tweetlist=tweet_list, spotify_id=track_spotify_id)
-
 
 # get mood categories
 def get_moods():
