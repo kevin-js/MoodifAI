@@ -3,6 +3,7 @@
 import sys
 sys.path.append('../../')
 sys.path.append('..')
+sys.path.append('.')
 import tweepy
 import re
 import requests
@@ -13,7 +14,7 @@ import pandas
 #import enchant
 from math import sqrt
 from flask import Flask, render_template, g, session, redirect, request, url_for
-from moodifai import config_data
+import config_data
 
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
