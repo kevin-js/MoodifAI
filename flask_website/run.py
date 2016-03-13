@@ -47,8 +47,6 @@ def login():
 
 @app.route('/sounds', methods=['GET', 'POST'])
 def sounds():
-	#oauth_verifier = request.args.get('oauth_verifier', '')
-	#print request.args.get('oauth_verifier')
 	oauth_verifier = request.args.get('oauth_verifier')
 	global request_token
 	token = oauth2.Token(request_token['oauth_token'], request_token['oauth_token_secret'])
@@ -56,8 +54,7 @@ def sounds():
 	token.set_verifier(oauth_verifier)
 	client = oauth2.Client(consumer, token)
 	resp, content = client.request(ACCESS_TOKEN_URL, "POST")
-	access_token = dict(urlparse.parse_qsl(content))
-
+	access_token = dict(urlparse.parse_qsl(content))	
 	auth = tweepy.OAuthHandler(config_data.twitter_consumer_key, config_data.twitter_consumer_secret)
 	auth.set_access_token(access_token['oauth_token'], access_token['oauth_token_secret'])
 	api = tweepy.API(auth)

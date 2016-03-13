@@ -3,14 +3,22 @@
 <div class="container-fluid splash-screen">
 	<div class="main-content row">
 		<div class="col-xs-12">
-			<div class="row"><h1 class="text-center">MoodifAI</h1></div>
+			<div class="row"><h1 id="title" class="text-center">MoodifAI</h1></div>
 			<div class="row">
 				<div class="col-md-offset-1 col-md-10 description">
 					<p></p>
 				</div>
 			</div>
 			<div class="row">
-				<div class="text-center"><a href="/login"><button id="signup-button" class="btn btn-lg btn-alert">Get Started</button></a></div>
+				<div class="col-md-offset-4 col-md-2 text-center" id="button-container-left">
+					<a href="/login"><button class="btn btn-lg my-button">Get Started</button></a>
+				</div>
+				<div class="col-md-2 text-center" id="button-container-right">
+					<button class="btn btn-lg my-button" onclick="showInfo()">Learn More</button>
+				</div>
+			</div>
+			<div class="row text-center" id="main-body">
+				<h1>Description coming soon!</h1>
 			</div>
 		</div>
 	</div>

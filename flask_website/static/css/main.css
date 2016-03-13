@@ -1,20 +1,47 @@
+body {
+	background: linear-gradient(220deg, #662424, #610a96, #a70230, #c25c00, #c5be10, #77c510, #10c561, #10c5b1, #1059c5);
+	background-size: 1800% 1800%;
+	color: #ffffff;
+	font-family: raleway;
+	-webkit-animation: moodifAI 15s ease infinite;
+	-moz-animation: moodifAI 15s ease infinite;
+	animation: moodifAI 15s ease infinite;
+}
+
+@font-face {
+	font-family: raleway;
+	src: url('Raleway-Regular.ttf');
+}
+
+@-webkit-keyframes moodifAI {
+    0%{background-position:92% 0%}
+    50%{background-position:9% 20%}
+    100%{background-position:92% 0%}
+}
+@-moz-keyframes moodifAI {
+    0%{background-position:92% 0%}
+    50%{background-position:9% 20%}
+    100%{background-position:92% 0%}
+}
+@keyframes moodifAI {
+    0%{background-position:92% 0%}
+    50%{background-position:9% 20%}
+    100%{background-position:92% 0%}
+}
+
 .my-navbar {
 	border-radius: 0;
 	margin-bottom: 0;
 }
 
-.splash-screen {
-	/*color: #ffffff;*/
-/*	background-image: url('../img/visualizer-background.jpg');
-	background-position: center center;
-	background-repeat: no-repeat;
-	background-size: cover;
-*/
+.my-button {
+	color: #ffffff;
+	background-color: rgba(255, 255, 255, 0.1);
+	border: 0.5px solid #ffffff;
 }
 
 .main-content {
 	margin-top: 20vh;
-	background-color: (255, 255, 255, 0.5);
 }
 
 .splash-screen-video {
@@ -25,10 +52,19 @@
     height: 100%;
 }
 
-#signup-button {
-	color: #000000;
+#main-body {
+	margin-top: 15vh;
+	visibility: hidden;
 }
 
-#signup-form {
-	color: #000000;
+#title {
+	font-family: raleway;
+	font-size: 10em;
+	color: #ffffff;
+}
+
+#button-container-left {
+}
+
+#button-container-right {
 }
