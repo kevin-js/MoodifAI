@@ -4,6 +4,7 @@ import sys
 sys.path.append('../../')
 sys.path.append('..')
 sys.path.append('.')
+import os
 import tweepy
 import re
 import requests
@@ -199,4 +200,5 @@ def configure_app():
 
 if __name__ == "__main__":
 	configure_app()
-	app.run()
+	port = int(os.environ.get('POST', 5000))
+	app.run(host='0.0.0.0', port=port)
