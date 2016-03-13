@@ -161,10 +161,8 @@ def sentiment_analysis(tweet_list):
 	avg_dominance_score = 0
 	n = 0
 	# problem: handle emoji
-	print tweet_words
 	for keyword in tweet_words:
 		keyword = unicode(keyword)
-		print keyword
 		try:
 			scores = app.padWordValues[keyword]
 			avg_valence_score += scores[0]
@@ -172,7 +170,6 @@ def sentiment_analysis(tweet_list):
 			avg_dominance_score += scores[2]
 			n += 1
 		except:
-			print sys.exc_info()
 			continue
 			"""
 			possible_matches = app.spellchecker.suggest(keyword)

@@ -13,14 +13,18 @@
 	</div>
 	<div class="row">
 		<div class="col-md-12">
-			<div class="text-center">
+			<div class="text-center" id="carousel">
 				{% for tweet in tweetlist %}
 					<div class="row">
-						<div class="col-md-12" style="color: black">{{ tweet.text }}</div>
+						<div class="col-md-12">{{ tweet.text }}</div>
 					</div>
 				{% endfor %}
 			</div>
 		</div>
 	</div>
 </div>
+<script type="text/javascript">
+	var myTweets = {{ tweet_list }};
+</script>
+<!--<script type="text/javascript" src="{{ url_for('static', filename='js/tweet_carousel.js')}}"></script>-->
 {% endblock content %}
