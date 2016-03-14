@@ -52,6 +52,11 @@ body {
     height: 100%;
 }
 
+.tweet-container {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
 #main-body {
 	margin-top: 15vh;
 	visibility: hidden;
