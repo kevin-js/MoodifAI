@@ -197,6 +197,7 @@ def sentiment_analysis(tweet_list):
 		# using Euclidean distance of observation from cluster means
 		current_emotion_score = app.padEmotionValues[emotion]
 		dist = sqrt((avg_valence_score - current_emotion_score[0])**2 + (avg_arousal_score - current_emotion_score[1])**2 + (avg_dominance_score - current_emotion_score[2]) ** 2)
+		print "(" + emotion + ", " + str(dist) + ")"
 		if dist < min_dist:
 			min_dist = dist
 			dominant_mood = emotion
